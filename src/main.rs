@@ -166,7 +166,7 @@ fn run() -> Result<(), Error> {
         .unwrap_or_else(
             |error| println!("Error creating cache directory: {:?}", error));
 
-    let sleep_duration = time::Duration::from_secs(20);
+    let sleep_duration = time::Duration::from_secs(60);
     loop {
         println!("Checking prods {:?}", options.pouet_prod_ids);
         if let Err(error) = check_prods(&prods, &options) {
