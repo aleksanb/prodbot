@@ -2,14 +2,17 @@
 #![feature(slice_patterns)]
 #![feature(conservative_impl_trait)]
 
-#[macro_use] extern crate serde_json;
-#[macro_use] extern crate serde_derive;
-#[macro_use] extern crate structopt_derive;
 extern crate failure;
 extern crate kuchiki;
 extern crate reqwest;
 extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate serde_json;
 extern crate structopt;
+#[macro_use]
+extern crate structopt_derive;
 
 use failure::Error;
 use std::fs::File;
@@ -24,10 +27,10 @@ mod pouet_client;
 #[derive(StructOpt, Debug)]
 #[structopt(name = "prodbot", about = "Scraper for pouet.net")]
 struct Opt {
-    #[structopt(long = "clear_cache", help = "Clear cache directory")]
-    clear_cache: bool,
+    #[structopt(long = "clear_cache", help = "Clear cache directory")] clear_cache: bool,
 
-    #[structopt(long = "slack_webhook_url", help = "Target slack webhook url. Omitting will only print to console instead")]
+    #[structopt(long = "slack_webhook_url",
+                help = "Target slack webhook url. Omitting will only print to console instead")]
     slack_webhook_url: Option<String>,
 
     #[structopt(long = "pouet_prod_ids", help = "Which pouet prod ids to listen to")]
@@ -44,8 +47,11 @@ fn check_prods(options: &Opt) -> Result<(), Error> {
 
             let mut cached_prod_response: Option<pouet_client::ProdResponse> = None;
             if let Ok(file) = File::open(cache_key) {
-                let shadowed_cached_prod_response: pouet_client::ProdResponse = serde_json::from_reader(file)?;
-                if shadowed_cached_prod_response.prod.vote_string() == prod_response.prod.vote_string() {
+                let shadowed_cached_prod_response: pouet_client::ProdResponse =
+                    serde_json::from_reader(file)?;
+                if shadowed_cached_prod_response.prod.vote_string()
+                    == prod_response.prod.vote_string()
+                {
                     println!("Prod {} has no difference between pouet and cache. Skipping webhook delivery", prod_response.prod.name);
                     continue;
                 }
@@ -54,16 +60,21 @@ fn check_prods(options: &Opt) -> Result<(), Error> {
             }
 
             let postfix = cached_prod_response
-                .map_or("[no cached value]".to_string(), |response| response.prod.vote_string());
-            let slack_text = format!("Prod <(https://www.pouet.net/prod.php?which={}|{}> now has {:#?} versus {}",
-                                     prod_id,
-                                     prod_response.prod.name,
-                                     prod_response.prod.vote_string(),
-                                     postfix);
+                .map_or("[no cached value]".to_string(), |response| {
+                    response.prod.vote_string()
+                });
+            let slack_text = format!(
+                "Prod <(https://www.pouet.net/prod.php?which={}|{}> now has {:#?} versus {}",
+                prod_id,
+                prod_response.prod.name,
+                prod_response.prod.vote_string(),
+                postfix
+            );
 
             println!("{}", slack_text);
             if let Some(ref slack_webhook_url) = options.slack_webhook_url {
-                reqwest_client.post(slack_webhook_url)
+                reqwest_client
+                    .post(slack_webhook_url)
                     .json(&json!({
                             "text": slack_text,
                         }))
@@ -77,7 +88,6 @@ fn check_prods(options: &Opt) -> Result<(), Error> {
 
     Ok(())
 }
-
 
 fn run() -> Result<(), Error> {
     let options: Opt = Opt::from_args();

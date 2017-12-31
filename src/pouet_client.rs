@@ -31,10 +31,8 @@ pub struct Group {
     pub id: String,
     pub name: String,
     pub web: String,
-    #[allow(non_snake_case)]
-    pub addedUser: String,
-    #[allow(non_snake_case)]
-    pub addedDate: String,
+    #[allow(non_snake_case)] pub addedUser: String,
+    #[allow(non_snake_case)] pub addedDate: String,
     pub acronym: String,
 }
 
@@ -43,20 +41,16 @@ pub struct User {
     pub id: String,
     pub nickname: String,
     pub level: String,
-    #[allow(non_snake_case)]
-    pub permissionSubmitItems: String,
-    #[allow(non_snake_case)]
-    pub permissionPostBBS: String,
+    #[allow(non_snake_case)] pub permissionSubmitItems: String,
+    #[allow(non_snake_case)] pub permissionPostBBS: String,
     pub avatar: String,
     pub glops: String,
-    #[allow(non_snake_case)]
-    pub registerDate: String,
+    #[allow(non_snake_case)] pub registerDate: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DownloadLink {
-    #[serde(rename = "type")]
-    pub _type: String,
+    #[serde(rename = "type")] pub _type: String,
     pub link: String,
 }
 
@@ -65,7 +59,6 @@ pub struct Credit {
     pub user: User,
     pub role: String,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Prod {
@@ -76,14 +69,10 @@ pub struct Prod {
     pub awards: Vec<serde_json::Value>,
     pub id: String,
     pub name: String,
-    #[serde(rename = "type")]
-    pub _type: String,
-    #[allow(non_snake_case)]
-    pub addedUser: String,
-    #[allow(non_snake_case)]
-    pub addedDate: String,
-    #[allow(non_snake_case)]
-    pub releaseDate: String,
+    #[serde(rename = "type")] pub _type: String,
+    #[allow(non_snake_case)] pub addedUser: String,
+    #[allow(non_snake_case)] pub addedDate: String,
+    #[allow(non_snake_case)] pub releaseDate: String,
     pub voteup: String,
     pub votepig: String,
     pub votedown: String,
@@ -100,12 +89,10 @@ pub struct Prod {
     pub zxdemo: String,
     pub invitation: String,
     pub invitationyear: String,
-    #[allow(non_snake_case)]
-    pub boardID: Option<String>,
+    #[allow(non_snake_case)] pub boardID: Option<String>,
     pub rank: String,
     pub cdc: i64,
-    #[allow(non_snake_case)]
-    pub downloadLinks: Vec<DownloadLink>,
+    #[allow(non_snake_case)] pub downloadLinks: Vec<DownloadLink>,
     pub screenshot: String,
     pub party_compo_name: String,
     pub credits: Vec<Credit>,
@@ -113,7 +100,10 @@ pub struct Prod {
 
 impl Prod {
     pub fn vote_string(&self) -> String {
-        format!("[voteup: {}, votepig: {}, votedown: {}, cdc: {}]", self.voteup, self.votepig, self.votedown, self.cdc)
+        format!(
+            "[voteup: {}, votepig: {}, votedown: {}, cdc: {}]",
+            self.voteup, self.votepig, self.votedown, self.cdc
+        )
     }
 }
 
@@ -129,14 +119,15 @@ pub struct PouetAPIClient {
 
 impl PouetAPIClient {
     pub fn new() -> Self {
-        PouetAPIClient{
-            client: reqwest::Client::new()
+        PouetAPIClient {
+            client: reqwest::Client::new(),
         }
     }
 
     pub fn get_prod(&self, id: usize) -> Result<ProdResponse, Error> {
-        Ok(serde_json::from_reader(
-            reqwest::get(
-                &format!("http://api.pouet.net/v1/prod/?id={}", id))?)?)
+        Ok(serde_json::from_reader(reqwest::get(&format!(
+            "http://api.pouet.net/v1/prod/?id={}",
+            id
+        ))?)?)
     }
 }
