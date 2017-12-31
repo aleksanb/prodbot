@@ -1,0 +1,14 @@
+[package]
+name = "prodbot"
+version = "0.1.0"
+authors = ["Aleksander Vognild Burkow <aleksanderburkow@gmail.com>"]
+
+[dependencies]
+reqwest = "*"
+kuchiki = "*"
+serde = "*"
+serde_json = "*"
+serde_derive = "*"
+failure = "*"
+structopt = "*"
+structopt-derive = "*"
