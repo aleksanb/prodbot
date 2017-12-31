@@ -64,7 +64,7 @@ fn check_prods(options: &Opt) -> Result<(), Error> {
                     response.prod.vote_string()
                 });
             let slack_text = format!(
-                "Prod <(https://www.pouet.net/prod.php?which={}|{}> now has {:#?} versus {}",
+                "Prod <https://www.pouet.net/prod.php?which={}|{}> now has {:#?} versus {}",
                 prod_id,
                 prod_response.prod.name,
                 prod_response.prod.vote_string(),
