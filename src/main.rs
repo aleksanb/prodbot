@@ -82,10 +82,8 @@ fn check_prods(options: &Opt) -> Result<(), Error> {
 fn run() -> Result<(), Error> {
     let options: Opt = Opt::from_args();
 
-    if options.clear_cache {
-        if Path::new("cache").exists() {
-            std::fs::remove_dir_all("cache")?;
-        }
+    if options.clear_cache && Path::new("cache").exists() {
+        std::fs::remove_dir_all("cache")?;
     }
 
     if !Path::new("cache").exists() {
