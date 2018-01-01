@@ -1,7 +1,14 @@
+#[macro_use]
+extern crate failure;
+extern crate reqwest;
+extern crate rss;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
+
 use failure::Error;
-use reqwest;
-use serde_json;
 use std::collections::HashMap;
+use std::io::BufReader;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Platform {
@@ -99,6 +106,11 @@ pub struct Prod {
 }
 
 impl Prod {
+    pub fn vote_count(&self) -> usize {
+        self.voteup.parse::<usize>().unwrap() + self.votepig.parse::<usize>().unwrap()
+            + self.votedown.parse::<usize>().unwrap()
+    }
+
     pub fn vote_string(&self) -> String {
         format!(
             "[voteup: {}, votepig: {}, votedown: {}, cdc: {}]",
@@ -129,5 +141,14 @@ impl PouetAPIClient {
             "http://api.pouet.net/v1/prod/?id={}",
             id
         ))?)?)
+    }
+
+    pub fn get_comments(&self, id: usize) -> Result<rss::Channel, Error> {
+        let response = reqwest::get(&format!(
+            "https://www.pouet.net/export/lastprodcomments.rss.php?prod={}",
+            id
+        ))?;
+        Ok(rss::Channel::read_from(BufReader::new(response))
+            .or_else(|error| Err(format_err!("{}", error)))?)
     }
 }
