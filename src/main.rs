@@ -3,11 +3,8 @@
 #![feature(conservative_impl_trait)]
 
 extern crate failure;
-extern crate kuchiki;
 extern crate reqwest;
 extern crate rss;
-extern crate serde;
-extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 extern crate structopt;
@@ -53,7 +50,7 @@ fn check_prods(options: &Opt) -> Result<(), Error> {
 
                 vote_diff = prod_response.prod.vote_count()
                     - shadowed_cached_prod_response.prod.vote_count();
-                if vote_diff > 0 {
+                if vote_diff == 0 {
                     println!("Prod {} has no difference between pouet and cache. Skipping webhook delivery",
                                  prod_response.prod.name);
                     continue;
