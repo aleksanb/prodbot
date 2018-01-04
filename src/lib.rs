@@ -7,6 +7,7 @@ extern crate serde_derive;
 extern crate serde_json;
 
 use failure::Error;
+use failure::ResultExt;
 use std::collections::HashMap;
 use std::io::BufReader;
 
@@ -91,10 +92,10 @@ pub struct Prod {
     pub party: Party,
     pub addeduser: User,
     pub sceneorg: String,
-    pub demozoo: String,
+    pub demozoo: Option<String>,
     pub csdb: String,
     pub zxdemo: String,
-    pub invitation: String,
+    pub invitation: Option<String>,
     pub invitationyear: String,
     #[serde(rename = "boardID")] pub board_id: Option<String>,
     pub rank: String,
@@ -137,10 +138,12 @@ impl PouetAPIClient {
     }
 
     pub fn get_prod(&self, id: usize) -> Result<ProdResponse, Error> {
-        Ok(serde_json::from_reader(reqwest::get(&format!(
+        let result = reqwest::get(&format!(
             "http://api.pouet.net/v1/prod/?id={}",
             id
-        ))?)?)
+        ))?;
+        Ok(serde_json::from_reader(result)
+            .context(format!("Couldn't deserialize response for prod {}", id))?)
     }
 
     pub fn get_comments(&self, id: usize) -> Result<rss::Channel, Error> {

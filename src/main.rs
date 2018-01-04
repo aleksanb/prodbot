@@ -123,7 +123,10 @@ fn run() -> Result<(), Error> {
     loop {
         println!("Checking prods {:?}", options.pouet_prod_ids);
         if let Err(error) = check_prods(&options) {
-            println!("Encountered error checking prods: {:?}", error);
+            println!("Encountered error checking prod");
+            for cause in error.causes() {
+                println!("{:?}", cause);
+            }
         }
         println!("Sleeping for {:?}", sleep_duration);
         thread::sleep(sleep_duration);
