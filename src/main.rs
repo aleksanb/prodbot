@@ -1,13 +1,16 @@
+#[macro_use]
 extern crate failure;
 extern crate reqwest;
 extern crate rss;
+#[macro_use]
+extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 extern crate structopt;
 #[macro_use]
 extern crate structopt_derive;
 
-extern crate prodbot;
+mod prodbot;
 
 use failure::Error;
 use std::fs::File;
@@ -28,6 +31,9 @@ struct Opt {
 
     #[structopt(long = "pouet_prod_ids", help = "Which pouet prod ids to listen to")]
     pouet_prod_ids: Vec<usize>,
+
+    #[structopt(long = "poll_timeout", help = "Time to sleep between each poll of the pouët.net api", default_value = "60")]
+    poll_timeout: u32,
 }
 
 fn check_prods(options: &Opt) -> Result<(), Error> {
@@ -36,7 +42,6 @@ fn check_prods(options: &Opt) -> Result<(), Error> {
 
     for prod_id in &options.pouet_prod_ids {
         let prod_response = pouet_api_client.get_prod(*prod_id)?;
-
         let cache_key = &format!("cache/{}.json", prod_id);
 
         let mut vote_diff = 0;
@@ -78,10 +83,9 @@ fn check_prods(options: &Opt) -> Result<(), Error> {
             })
             .collect::<String>();
 
-        let postfix = cached_prod_response
-            .map_or("[no cached value]".to_string(), |response| {
-                response.prod.vote_string()
-            });
+        let postfix = cached_prod_response.map_or("[no cached value]".to_string(), |response| {
+            response.prod.vote_string()
+        });
         let slack_text = format!(
             "Prod <https://www.pouet.net/prod.php?which={}|{}> now has {} up from {}\n{}",
             prod_id,
@@ -110,6 +114,11 @@ fn check_prods(options: &Opt) -> Result<(), Error> {
 
 fn run() -> Result<(), Error> {
     let options: Opt = Opt::from_args();
+    println!("Starting {} version {} with options: {:#?}",
+             env!("CARGO_PKG_NAME"),
+             env!("CARGO_PKG_VERSION"),
+             options,
+    );
 
     if options.clear_cache && Path::new("cache").exists() {
         std::fs::remove_dir_all("cache")?;
@@ -119,7 +128,7 @@ fn run() -> Result<(), Error> {
         create_dir("cache")?;
     }
 
-    let sleep_duration = time::Duration::from_secs(60);
+    let sleep_duration = time::Duration::from_secs(options.poll_timeout as u64);
     loop {
         println!("Checking prods {:?}", options.pouet_prod_ids);
         if let Err(error) = check_prods(&options) {

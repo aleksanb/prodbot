@@ -1,13 +1,8 @@
-#[macro_use]
-extern crate failure;
-extern crate reqwest;
-extern crate rss;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-
 use failure::Error;
 use failure::ResultExt;
+use reqwest;
+use rss;
+use serde_json;
 use std::collections::HashMap;
 use std::io::BufReader;
 
@@ -138,10 +133,7 @@ impl PouetAPIClient {
     }
 
     pub fn get_prod(&self, id: usize) -> Result<ProdResponse, Error> {
-        let result = reqwest::get(&format!(
-            "http://api.pouet.net/v1/prod/?id={}",
-            id
-        ))?;
+        let result = reqwest::get(&format!("http://api.pouet.net/v1/prod/?id={}", id))?;
         Ok(serde_json::from_reader(result)
             .context(format!("Couldn't deserialize response for prod {}", id))?)
     }
