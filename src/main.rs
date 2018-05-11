@@ -13,17 +13,19 @@ extern crate structopt_derive;
 mod prodbot;
 
 use failure::Error;
+use failure::ResultExt;
 use std::fs::File;
-use std::fs::create_dir;
-use std::path::Path;
+use std::fs::create_dir_all;
 use std::thread;
+use std::path::Path;
 use std::time;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "prodbot", about = "Scraper for pouet.net")]
 struct Opt {
-    #[structopt(long = "clear_cache", help = "Clear cache directory")] clear_cache: bool,
+    #[structopt(long = "clear_cache", help = "Clear cache directory")]
+    clear_cache: bool,
 
     #[structopt(long = "slack_webhook_url",
                 help = "Target slack webhook url. Omitting will only print to console instead")]
@@ -32,7 +34,9 @@ struct Opt {
     #[structopt(long = "pouet_prod_ids", help = "Which pouet prod ids to listen to")]
     pouet_prod_ids: Vec<usize>,
 
-    #[structopt(long = "poll_timeout", help = "Time to sleep between each poll of the pouët.net api", default_value = "60")]
+    #[structopt(long = "poll_timeout",
+                help = "Time to sleep between each poll of the pouët.net api",
+                default_value = "60")]
     poll_timeout: u32,
 }
 
@@ -45,7 +49,7 @@ fn check_prods(options: &Opt) -> Result<(), Error> {
         let cache_key = &format!("cache/{}.json", prod_id);
 
         let mut vote_diff = 0;
-        let mut cached_prod_response: Option<prodbot::ProdResponse> = None;
+        let mut cached_prod_response = None;
         if let Ok(file) = File::open(cache_key) {
             let shadowed_cached_prod_response: prodbot::ProdResponse =
                 serde_json::from_reader(file)?;
@@ -112,21 +116,20 @@ fn check_prods(options: &Opt) -> Result<(), Error> {
     Ok(())
 }
 
-fn run() -> Result<(), Error> {
+fn main() -> Result<(), Error> {
     let options: Opt = Opt::from_args();
-    println!("Starting {} version {} with options: {:#?}",
-             env!("CARGO_PKG_NAME"),
-             env!("CARGO_PKG_VERSION"),
-             options,
+    println!(
+        "Starting {} version {} with options: {:#?}",
+        env!("CARGO_PKG_NAME"),
+        env!("CARGO_PKG_VERSION"),
+        options,
     );
 
     if options.clear_cache && Path::new("cache").exists() {
-        std::fs::remove_dir_all("cache")?;
+        std::fs::remove_dir_all("cache").context("Couldn't delete cache directory")?;
     }
 
-    if !Path::new("cache").exists() {
-        create_dir("cache")?;
-    }
+    create_dir_all("cache")?;
 
     let sleep_duration = time::Duration::from_secs(options.poll_timeout as u64);
     loop {
@@ -139,13 +142,5 @@ fn run() -> Result<(), Error> {
         }
         println!("Sleeping for {:?}", sleep_duration);
         thread::sleep(sleep_duration);
-    }
-}
-
-fn main() {
-    if let Err(error) = run() {
-        for cause in error.causes() {
-            println!("{:?}", cause);
-        }
     }
 }

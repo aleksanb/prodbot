@@ -121,15 +121,11 @@ pub struct ProdResponse {
     pub prod: Prod,
 }
 
-pub struct PouetAPIClient {
-    client: reqwest::Client,
-}
+pub struct PouetAPIClient {}
 
 impl PouetAPIClient {
     pub fn new() -> Self {
-        PouetAPIClient {
-            client: reqwest::Client::new(),
-        }
+        PouetAPIClient {}
     }
 
     pub fn get_prod(&self, id: usize) -> Result<ProdResponse, Error> {
