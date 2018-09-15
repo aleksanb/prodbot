@@ -34,10 +34,15 @@ struct Opt {
     #[structopt(long = "pouet_prod_ids", help = "Which pouet prod ids to listen to")]
     pouet_prod_ids: Vec<usize>,
 
-    #[structopt(long = "poll_timeout",
-                help = "Time to sleep between each poll of the pouët.net api",
+    #[structopt(long = "timeout_between_each_check",
+                help = "Time to sleep between each check of the pouët.net api",
                 default_value = "60")]
-    poll_timeout: u32,
+    timeout_between_each_check: u64,
+
+    #[structopt(long = "timeout_between_individual_requests",
+    help = "Time to sleep after each request to the pouët.net api",
+    default_value = "10")]
+    timeout_between_individual_requests: u64,
 }
 
 fn check_prods(options: &Opt) -> Result<(), Error> {
@@ -111,6 +116,10 @@ fn check_prods(options: &Opt) -> Result<(), Error> {
         }
 
         serde_json::to_writer(File::create(cache_key)?, &prod_response)?;
+
+        let sleep_duration = time::Duration::from_secs(options.timeout_between_individual_requests);
+        println!("Sleeping for {:?}", sleep_duration);
+        thread::sleep(sleep_duration);
     }
 
     Ok(())
@@ -131,7 +140,7 @@ fn main() -> Result<(), Error> {
 
     create_dir_all("cache")?;
 
-    let sleep_duration = time::Duration::from_secs(options.poll_timeout as u64);
+    let sleep_duration = time::Duration::from_secs(options.timeout_between_each_check);
     loop {
         println!("Checking prods {:?}", options.pouet_prod_ids);
         if let Err(error) = check_prods(&options) {
